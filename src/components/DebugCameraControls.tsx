@@ -16,14 +16,14 @@ interface DebugCameraControlsProps {
 
 const DebugCameraControls = ({ debugMode, setDebugMode, cameraViews, currentCameraView, setCurrentCameraView }: DebugCameraControlsProps) => {
   return (
-    <div className="absolute top-4 right-4 z-10">
+    <div className="p-2 absolute top-4 right-4 z-10 bg-white opacity-70 rounded">
             <div className="relative flex flex-col items-end">
-              <button className="px-2 py-1 mb-2 bg-white hover:bg-blue-400 rounded" onClick={() => setDebugMode(!debugMode)} >
+              <button className="px-2 py-1 bg-white hover:bg-blue-400 rounded" onClick={() => setDebugMode(!debugMode)} >
                 {debugMode ? "Hide Debug UI" : "Show Debug UI"}
               </button>
     
               {/* Render Debug Controls Only When Debug Mode is Enabled */}
-              {debugMode && <div>
+              {debugMode && <div className="mt-2 flex flex-col items-end">
                     <button 
                         className={`px-2 py-1 mb-2 rounded hover:bg-blue-400 ${currentCameraView === cameraViews.main ? "bg-blue-300" : "bg-white"}`} 
                         onClick={() => setCurrentCameraView(cameraViews.main)}
@@ -31,7 +31,7 @@ const DebugCameraControls = ({ debugMode, setDebugMode, cameraViews, currentCame
                         Main View
                     </button>
                     <button 
-                        className={`px-2 py-1 mb-2 mx-2 rounded hover:bg-blue-400 ${currentCameraView === cameraViews.monitor ? "bg-blue-300" : "bg-white"}`} 
+                        className={`px-2 py-1 mb-2 rounded hover:bg-blue-400 ${currentCameraView === cameraViews.monitor ? "bg-blue-300" : "bg-white"}`} 
                         onClick={() => setCurrentCameraView(cameraViews.monitor)}
                     >
                         Monitor View

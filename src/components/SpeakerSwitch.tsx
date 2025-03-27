@@ -31,6 +31,8 @@ export default function SpeakerSwitch(props: SpeakerSwitchProps) {
     const initialQuaternion = useRef(new THREE.Quaternion());
     const targetQuaternion = useRef(new THREE.Quaternion());
     const currentQuaternion = useRef(new THREE.Quaternion());
+    const rotationAxis = new THREE.Vector3(1, 0, 0);
+    const rotationAngle = Math.PI / 10;
 
     // Mark ready on the next frame after mounting
     useEffect(() => {
@@ -54,10 +56,7 @@ export default function SpeakerSwitch(props: SpeakerSwitchProps) {
 
     useEffect(() => {
         if (!initialized.current || !switchRef.current) return;
-    
-        const rotationAxis = new THREE.Vector3(1, 0, 0);
-        const rotationAngle = Math.PI / 10;
-    
+      
         targetQuaternion.current.copy(initialQuaternion.current);
     
         if (!speakersOn) {

@@ -34,7 +34,7 @@ const DeskScene = ({ speakersOn, canHover, onMeshClick, currentView, setHighligh
 
     useEffect(() => {
         if (!speakerLight) return;
-        console.log(speakersOn)
+        //console.log(speakersOn)
         setSpeakerLightMat(speakersOn ? onLightMat : offLightMat);
     }, [speakersOn, speakerLight]);
 

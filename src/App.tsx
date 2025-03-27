@@ -168,7 +168,7 @@ const App = () => {
         ))} */}
       </div>
 
-      
+      <div id="monitor-dom" style={{ position: "absolute", top: 0, left: 0, pointerEvents: "none", zIndex: 2 }} />
     </div>
   )
 }

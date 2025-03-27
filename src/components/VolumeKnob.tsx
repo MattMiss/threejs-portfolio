@@ -34,15 +34,13 @@ export default function VolumeKnob (props: VolumeKnobProps) {
         console.error("VolumeKnob mesh not found in the GLTF file!");
     }
 
-
-
     const knobRef = useRef<THREE.Mesh>(null);
     const [isDragging, setIsDragging] = useState(false);
     const [hovered, setIsHovered] = useState(false);
     const initialQuaternion = useRef(new THREE.Quaternion());
-    const totalRotation = useRef(0);
+    const targetQuaternion = useRef(new THREE.Quaternion());
 
-    //const material = new THREE.MeshStandardMaterial({ color: "orange", wireframe: true});
+    const totalRotation = useRef(0);
 
     useEffect(() => {
         if (knobRef.current) {
@@ -79,7 +77,7 @@ export default function VolumeKnob (props: VolumeKnobProps) {
     
             // Map rotation to a value (0-100)
             const newValue = maxValue - ((newRotation + Math.PI * 0.75) / (Math.PI * 1.5)) * (maxValue - minValue);
-            console.log(newValue)
+            //console.log(newValue)
             onChange(newValue);
         };
   
@@ -111,9 +109,8 @@ export default function VolumeKnob (props: VolumeKnobProps) {
     useFrame(() => {
         if (knobRef.current) {
           // Apply rotation around LOCAL Y-axis while preserving original rotation
-          const quaternion = new THREE.Quaternion();
-          quaternion.setFromAxisAngle(new THREE.Vector3(0, 0, 1), totalRotation.current); // Rotate around local Y-axis
-          knobRef.current.quaternion.copy(initialQuaternion.current).multiply(quaternion);
+          targetQuaternion.current.setFromAxisAngle(new THREE.Vector3(0, 0, 1), totalRotation.current); // Rotate around local Y-axis
+          knobRef.current.quaternion.copy(initialQuaternion.current).multiply(targetQuaternion.current);
         }
     });
   
