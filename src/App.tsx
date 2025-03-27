@@ -1,5 +1,5 @@
 import { Canvas } from '@react-three/fiber'
-import { OrbitControls } from '@react-three/drei';
+import { OrbitControls, Stats } from '@react-three/drei';
 import { Mesh } from 'three';
 import DeskScene from './components/DeskScene';
 import CameraController from './components/CameraController';
@@ -11,6 +11,7 @@ import TooltipLine from './components/TooltipLine';
 import { EffectComposer, Outline, Selection } from "@react-three/postprocessing";
 import VolumeKnob from './components/VolumeKnob';
 import SpeakerSwitch from './components/SpeakerSwitch';
+import { AudioPlayer } from './components/AudioPlayer';
 
 
 // Define preset camera positions and their corresponding lookAt targets
@@ -32,7 +33,7 @@ const App = () => {
   const [highlightedMesh, setHighlightedMesh] = useState<Mesh | null>(null);
 
   const [speakersOn, setSpeakersOn] = useState(false);
-  const [volume, setVolume] = useState(50);
+  const [volume, setVolume] = useState(0.5);
   const [isVolumeChanging, setIsVolumeChanging] = useState(false);
 
   //const [knobPos, setKnobPos] = useState<Vector3>(new Vector3(-26.53, 22.25, -0.59));
@@ -57,6 +58,7 @@ const App = () => {
 
   return (
     <div id="canvas-container">
+      <Stats showPanel={0}/>
       <Canvas 
         style={{ width: '100vw', height: '100vh', position: 'relative' }} 
       >
@@ -64,6 +66,14 @@ const App = () => {
         <ambientLight intensity={2} />
         <OrbitControls enableZoom={debugMode} enablePan={debugMode} enableRotate={debugMode}/>
            
+        <AudioPlayer 
+          songUrl='songs/6_16_24_WIP_2024-06-24.mp3' 
+          loop={true} 
+          initialVolume={0.5} 
+          volume={volume}
+          playing={speakersOn}
+          fadeDuration={500}
+        />
         <MonitorScreen 
           isInFocus={currentCameraView === cameraViews.monitor}
         />
@@ -83,7 +93,7 @@ const App = () => {
         <VolumeKnob 
           canInteract={currentCameraView === cameraViews.speaker}
           minValue={0} 
-          maxValue={100} 
+          maxValue={1} 
           onChange={setVolume} 
           onInteracting={setIsVolumeChanging}
           position={[ -26.52, 22.25, -0.61]}
@@ -130,7 +140,7 @@ const App = () => {
       />  
 
       <div style={{ position: "absolute", bottom: 40, left: 20, color: "white", width: 1000 }}>
-        Volume: {volume.toFixed(0)}
+        Volume: {volume.toFixed(2)}
         {/* Position: {`${knobPos.x}, ${knobPos.y}, ${knobPos.z}`}
 
         {["x", "y", "z"].map((axis) => (

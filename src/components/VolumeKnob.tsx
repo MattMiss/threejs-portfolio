@@ -21,7 +21,7 @@ export default function VolumeKnob (props: VolumeKnobProps) {
     const {
         canInteract = false,
         minValue = 0,
-        maxValue = 100,
+        maxValue = 1,
         onChange,
         onInteracting,
         rotation = [0, 0, 0],
@@ -79,6 +79,7 @@ export default function VolumeKnob (props: VolumeKnobProps) {
     
             // Map rotation to a value (0-100)
             const newValue = maxValue - ((newRotation + Math.PI * 0.75) / (Math.PI * 1.5)) * (maxValue - minValue);
+            console.log(newValue)
             onChange(newValue);
         };
   

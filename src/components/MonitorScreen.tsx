@@ -19,6 +19,7 @@ const MonitorScreen = ({isInFocus} : MonitorProps) => {
           transform 
           position={[0, 33.85, -13.12]}
           occlude="raycast"
+          style={{ zIndex: 1 }}
         >
             <div
                 style={{
@@ -26,6 +27,7 @@ const MonitorScreen = ({isInFocus} : MonitorProps) => {
                 width: 1210,
                 background: "black",
                 pointerEvents: isInFocus ? "all" : "none",
+                zIndex: 1
                 }}
             >
                 <IndexPage />

@@ -25,10 +25,21 @@ export default function SpeakerSwitch(props: SpeakerSwitchProps) {
     }
 
     const switchRef = useRef<THREE.Mesh>(null);
+    const initialized = useRef(false); // used so quarternion rotation doesn't occur until the switch is initialized and initial rotation is set
+    const [readyToInit, setReadyToInit] = useState(false)
     const [hovered, setIsHovered] = useState(false);
     const initialQuaternion = useRef(new THREE.Quaternion());
     const targetQuaternion = useRef(new THREE.Quaternion());
     const currentQuaternion = useRef(new THREE.Quaternion());
+
+    // Mark ready on the next frame after mounting
+    useEffect(() => {
+        let frame: number
+        if (switchRef.current) {
+            frame = requestAnimationFrame(() => setReadyToInit(true))
+        }
+        return () => cancelAnimationFrame(frame)
+    }, [])
 
     useEffect(() => {
         document.body.style.cursor = hovered ? "pointer" : "auto";
@@ -42,27 +53,56 @@ export default function SpeakerSwitch(props: SpeakerSwitchProps) {
     }, []);
 
     useEffect(() => {
-        if (switchRef.current) {
-            const rotationAxis = new THREE.Vector3(1, 0, 0); // 🔥 Adjust if needed
-            const rotationAngle = Math.PI / 10; // 🔥 18 degrees in radians
-
-            // 🔄 Compute the new target quaternion (rotate around its local axis)
-            targetQuaternion.current.copy(initialQuaternion.current);
-            if (!speakersOn) {
-                const offsetRotation = new THREE.Quaternion();
-                offsetRotation.setFromAxisAngle(rotationAxis, rotationAngle);
-                targetQuaternion.current.multiply(offsetRotation);
-            }
+        if (!initialized.current || !switchRef.current) return;
+    
+        const rotationAxis = new THREE.Vector3(1, 0, 0);
+        const rotationAngle = Math.PI / 10;
+    
+        targetQuaternion.current.copy(initialQuaternion.current);
+    
+        if (!speakersOn) {
+            const offsetRotation = new THREE.Quaternion();
+            offsetRotation.setFromAxisAngle(rotationAxis, rotationAngle);
+            targetQuaternion.current.multiply(offsetRotation);
         }
-    }, [speakersOn]);
+    }, [speakersOn])
 
     useFrame(() => {
-        if (switchRef.current) {
-            // 🔄 Smoothly interpolate towards the target quaternion
-            currentQuaternion.current.slerp(targetQuaternion.current, 0.2);
-            switchRef.current.quaternion.copy(currentQuaternion.current);
+        if (switchRef.current && readyToInit && !initialized.current) {
+          // Capture initial rotation
+          initialQuaternion.current.copy(switchRef.current.quaternion)
+          currentQuaternion.current.copy(switchRef.current.quaternion)
+          initialized.current = true
+      
+          // Force set target immediately based on current state
+          updateTargetQuaternion(speakersOn)
         }
-    });
+      
+        // Only slerp once initialized
+        if (initialized.current && switchRef.current) {
+          currentQuaternion.current.slerp(targetQuaternion.current, 0.2)
+          switchRef.current.quaternion.copy(currentQuaternion.current)
+        }
+    })
+
+    const updateTargetQuaternion = (isOn: boolean) => {
+        if (!initialized.current) return
+      
+        const rotationAxis = new THREE.Vector3(1, 0, 0)
+        const rotationAngle = Math.PI / 10
+      
+        targetQuaternion.current.copy(initialQuaternion.current)
+      
+        if (!isOn) {
+          const offsetRotation = new THREE.Quaternion()
+          offsetRotation.setFromAxisAngle(rotationAxis, rotationAngle)
+          targetQuaternion.current.multiply(offsetRotation)
+        }
+    }
+
+    useEffect(() => {
+        updateTargetQuaternion(speakersOn)
+      }, [speakersOn])
 
     const handleClick = () => {
         if (!canInteract) return;
