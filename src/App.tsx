@@ -96,16 +96,12 @@ const App = () => {
           maxValue={1} 
           onChange={setVolume} 
           onInteracting={setIsVolumeChanging}
-          position={[ -26.52, 22.25, -0.61]}
-          rotation={[0, Math.PI * 0.16, 0]}
         />
 
         <SpeakerSwitch 
           canInteract={currentCameraView === cameraViews.speaker}
           speakersOn={speakersOn}
           onSwitch={setSpeakersOn}
-          position={[-23.35, 22.25, -2.5]}
-          rotation={[0, Math.PI * 0.16, 0]}
         />
 
         <Selection>

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ThreeElements, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { useGLTF } from "@react-three/drei";
+import { useGLTF, Text } from "@react-three/drei";
 
 type GLTFResult = {
     scene: THREE.Group;
@@ -16,6 +16,11 @@ export type SpeakerSwitchProps = ThreeElements["mesh"] & {
 
 export default function SpeakerSwitch(props: SpeakerSwitchProps) {
     const { canInteract = false, speakersOn, onSwitch, ...rest } = props;
+    const switchPosition=new THREE.Vector3(-23.35, 22.25, -2.5);
+    const switchRotation=new THREE.Euler(0, Math.PI * 0.16, 0);
+    const onTextLocation = new THREE.Vector3(0, 0.85, 0.1);
+    const offTextLocation = new THREE.Vector3(0, -0.85, 0.1);
+    const textColor = new THREE.Color(0.4, 0.4, 0.4);
 
     // Load GLTF
     const { scene } = useGLTF("/models/SpeakerSwitch.gltf") as GLTFResult;
@@ -109,14 +114,34 @@ export default function SpeakerSwitch(props: SpeakerSwitchProps) {
     };
 
     return (
-        <mesh
-            ref={switchRef}
-            geometry={speakerSwitch.geometry}
-            material={speakerSwitch.material}
-            onPointerDown={handleClick}
-            onPointerEnter={() => canInteract && setIsHovered(true)}
-            onPointerLeave={() => canInteract && setIsHovered(false)}
+        <group position={switchPosition} rotation={switchRotation}>   
+            <Text 
+                color={textColor}
+                anchorX="center" 
+                anchorY="middle"
+                position={onTextLocation}
+                fontSize={0.2}
+            >
+                ON
+            </Text>      
+            <Text 
+                color={textColor}
+                anchorX="center" 
+                anchorY="middle"
+                position={offTextLocation}
+                fontSize={0.2}
+            >
+                OFF
+            </Text>    
+            <mesh
+                ref={switchRef}
+                geometry={speakerSwitch.geometry}
+                material={speakerSwitch.material}
+                onPointerDown={handleClick}
+                onPointerEnter={() => canInteract && setIsHovered(true)}
+                onPointerLeave={() => canInteract && setIsHovered(false)}
             {...rest}
-        />
+            />
+        </group>        
     );
 }

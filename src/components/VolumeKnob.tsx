@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useFrame, ThreeElements } from "@react-three/fiber";
 import * as THREE from "three";
-import { useGLTF } from "@react-three/drei";
+import { useGLTF, Text } from "@react-three/drei";
 
 type GLTFResult = {
     scene: THREE.Group;
@@ -33,6 +33,12 @@ export default function VolumeKnob (props: VolumeKnobProps) {
     if (!volumeKnob) {
         console.error("VolumeKnob mesh not found in the GLTF file!");
     }
+
+    const knobPosition=new THREE.Vector3(-26.52, 22.25, -0.61);
+    const knobRotation=new THREE.Euler(0, Math.PI * 0.16, 0);
+    const zeroVolTextLoc = new THREE.Vector3(-0.5, -0.55, 0);
+    const fullVolTextLoc = new THREE.Vector3(0.5, -0.55, 0);
+    const textColor = new THREE.Color(0.4, 0.4, 0.4);
 
     const knobRef = useRef<THREE.Mesh>(null);
     const [isDragging, setIsDragging] = useState(false);
@@ -115,27 +121,51 @@ export default function VolumeKnob (props: VolumeKnobProps) {
     });
   
     return (
-        <mesh
-            ref={knobRef}
-            geometry={volumeKnob.geometry}
-            material={volumeKnob.material}
-            onPointerDown={() => {
-                if (!canInteract) return;
+        <group position={knobPosition} rotation={knobRotation}> 
+            <Text 
+                color={textColor}
+                anchorX="center" 
+                anchorY="middle"
+                position={zeroVolTextLoc}
+                rotation={[0, 0, -0.8]}
+                fontSize={0.1}
+            >
+                |
+            </Text>   
+            <Text 
+                color={textColor}
+                anchorX="center" 
+                anchorY="middle"
+                position={fullVolTextLoc}
+                rotation={[0, 0, 0.8]}
+                fontSize={0.2}
+                fontWeight={800}
+            >
+                |
+            </Text> 
+            <mesh
+                ref={knobRef}
+                geometry={volumeKnob.geometry}
+                material={volumeKnob.material}
+                onPointerDown={() => {
+                    if (!canInteract) return;
 
-                setIsDragging(true);
-                onInteracting(true);                
-            }}
-            onPointerEnter={() => {
-                if (!canInteract) return;
+                    setIsDragging(true);
+                    onInteracting(true);                
+                }}
+                onPointerEnter={() => {
+                    if (!canInteract) return;
 
-                setIsHovered(true);               
-            }}
-            onPointerLeave={() => {
-                if (!canInteract) return;
-                
-                setIsHovered(false);           
-            }}
-            {...rest}
-        />
+                    setIsHovered(true);               
+                }}
+                onPointerLeave={() => {
+                    if (!canInteract) return;
+                    
+                    setIsHovered(false);           
+                }}
+                {...rest}
+            />
+        </group>
+        
     );
 };
