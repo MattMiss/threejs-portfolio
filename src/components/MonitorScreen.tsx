@@ -1,7 +1,8 @@
 import { Html } from "@react-three/drei";
 import { useRef, useEffect } from "react";
 import { Mesh } from "three";
-import IndexPage from "../portfolio/pages";
+//import IndexPage from "../portfolio/pages";
+import Desktop from "./Desktop";
 
 interface MonitorProps {
     isInFocus: boolean;    
@@ -34,7 +35,7 @@ const MonitorScreen = ({isInFocus} : MonitorProps) => {
                 pointerEvents: isInFocus ? "all" : "none",
                 }}
             >
-                <IndexPage />
+                <Desktop />
           </div>
         </Html>
       </meshStandardMaterial>

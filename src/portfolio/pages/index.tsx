@@ -7,7 +7,7 @@ import ProjectsSection from "../components/ProjectsSection";
 import ContactSection from "../components/ContactSection";
 
 const IndexPage: React.FC = () => (
-    <div className="flex flex-col bg-zinc-900 text-gray-300 w-full h-full overflow-x-hidden ">
+    <div className="absolute flex flex-col bg-zinc-900 text-gray-300 w-full h-full overflow-x-hidden ">
         {/* Navbar */}
         <Navbar />
 

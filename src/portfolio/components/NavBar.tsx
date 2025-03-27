@@ -32,7 +32,7 @@ const Navbar: React.FC = () => {
             initial={{ y: 0 }}
             animate={{ y: isScrolled ? "-100%" : "0%" }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="fixed top-0 left-0 w-full z-50 bg-zinc-900 shadow-md"
+            className="relative fixed top-0 left-0 w-full z-50 bg-zinc-900 shadow-md"
         >
             <div className="w-full max-w-screen-lg mx-auto px-4">
                 <div className="flex items-center justify-between h-16">
