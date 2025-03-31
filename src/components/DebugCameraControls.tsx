@@ -1,44 +1,38 @@
 import { Vector3 } from "three";
+import { useCameraView } from "../context/CameraContext";
 
 interface DebugCameraControlsProps {
     debugMode: boolean;
     setDebugMode: (debug: boolean) => void;
-    cameraViews: {
-        main: { name: string, position: Vector3, lookAt: Vector3 },
-        monitor: { name: string, position: Vector3, lookAt: Vector3 },
-        speaker: { name: string, position: Vector3, lookAt: Vector3 }, 
-    }
-    currentCameraView: { name: string, position: Vector3; lookAt: Vector3 };
-    setCurrentCameraView: React.Dispatch<
-    React.SetStateAction<{ name: string, position: Vector3; lookAt: Vector3 }>
-  >;
 }
 
-const DebugCameraControls = ({ debugMode, setDebugMode, cameraViews, currentCameraView, setCurrentCameraView }: DebugCameraControlsProps) => {
-  return (
-    <div className="p-2 absolute top-4 right-4 z-10 bg-white opacity-70 rounded">
+const DebugCameraControls = ({ debugMode, setDebugMode }: DebugCameraControlsProps) => {
+    const { cameraViews, cameraView, setCameraView } = useCameraView();
+
+    return (
+        <div className="p-2 absolute top-4 right-4 z-10 bg-white opacity-70 rounded">
             <div className="relative flex flex-col items-end">
-              <button className="px-2 py-1 bg-white hover:bg-blue-400 rounded" onClick={() => setDebugMode(!debugMode)} >
-                {debugMode ? "Hide Debug UI" : "Show Debug UI"}
-              </button>
-    
-              {/* Render Debug Controls Only When Debug Mode is Enabled */}
-              {debugMode && <div className="mt-2 flex flex-col items-end">
+                <button className="px-2 py-1 bg-white hover:bg-blue-400 rounded" onClick={() => setDebugMode(!debugMode)} >
+                    {debugMode ? "Hide Debug UI" : "Show Debug UI"}
+                </button>
+        
+                {/* Render Debug Controls Only When Debug Mode is Enabled */}
+                {debugMode && <div className="mt-2 flex flex-col items-end">
                     <button 
-                        className={`px-2 py-1 mb-2 rounded hover:bg-blue-400 ${currentCameraView === cameraViews.main ? "bg-blue-300" : "bg-white"}`} 
-                        onClick={() => setCurrentCameraView(cameraViews.main)}
+                        className={`px-2 py-1 mb-2 rounded hover:bg-blue-400 ${cameraView === cameraViews.main ? "bg-blue-300" : "bg-white"}`} 
+                        onClick={() => setCameraView(cameraViews.main)}
                     >
                         Main View
                     </button>
                     <button 
-                        className={`px-2 py-1 mb-2 rounded hover:bg-blue-400 ${currentCameraView === cameraViews.monitor ? "bg-blue-300" : "bg-white"}`} 
-                        onClick={() => setCurrentCameraView(cameraViews.monitor)}
+                        className={`px-2 py-1 mb-2 rounded hover:bg-blue-400 ${cameraView === cameraViews.monitor ? "bg-blue-300" : "bg-white"}`} 
+                        onClick={() => setCameraView(cameraViews.monitor)}
                     >
                         Monitor View
                     </button>
                     <button 
-                        className={`px-2 py-1 mb-2 rounded hover:bg-blue-400 ${currentCameraView === cameraViews.speaker ? "bg-blue-300" : "bg-white"}`} 
-                        onClick={() => setCurrentCameraView(cameraViews.speaker)}
+                        className={`px-2 py-1 mb-2 rounded hover:bg-blue-400 ${cameraView === cameraViews.speaker ? "bg-blue-300" : "bg-white"}`} 
+                        onClick={() => setCameraView(cameraViews.speaker)}
                     >
                         Speaker View
                     </button>
@@ -46,7 +40,7 @@ const DebugCameraControls = ({ debugMode, setDebugMode, cameraViews, currentCame
                     <div className="flex flex-col items-end p-2">
                         <h3 className="font-bold">Current Camera Position</h3>
                         <div className="mb-2"> 
-                            <div>{`${currentCameraView.position.x}, ${currentCameraView.position.y}, ${currentCameraView.position.z}`}</div>
+                            <div>{`${cameraView.position.x}, ${cameraView.position.y}, ${cameraView.position.z}`}</div>
                         </div>
 
                         {["x", "y", "z"].map((axis) => (
@@ -58,16 +52,18 @@ const DebugCameraControls = ({ debugMode, setDebugMode, cameraViews, currentCame
                                         min="-100"
                                         max="100"
                                         step="0.1"
-                                        value={currentCameraView.position[axis as keyof Vector3] as number}
-                                        onChange={(e) =>
-                                        setCurrentCameraView((prevView) => ({
-                                            ...prevView,
-                                            position: new Vector3(
-                                            axis === "x" ? parseFloat(e.target.value) : prevView.position.x,
-                                            axis === "y" ? parseFloat(e.target.value) : prevView.position.y,
-                                            axis === "z" ? parseFloat(e.target.value) : prevView.position.z
-                                            ),
-                                        }))
+                                        value={cameraView.position[axis as keyof Vector3] as number}
+                                        onChange={(e) => {
+                                                const newView = {
+                                                    ...cameraView,
+                                                    position: new Vector3(
+                                                        axis === "x" ? parseFloat(e.target.value) : cameraView.position.x,
+                                                        axis === "y" ? parseFloat(e.target.value) : cameraView.position.y,
+                                                        axis === "z" ? parseFloat(e.target.value) : cameraView.position.z
+                                                    ),
+                                                }
+                                                setCameraView(newView);
+                                            }                                          
                                         }
                                     />
                                 </label>
@@ -77,7 +73,7 @@ const DebugCameraControls = ({ debugMode, setDebugMode, cameraViews, currentCame
 
                         <h3 className="font-bold">Current LookAt Position</h3>
                         <div className="mb-2"> 
-                            <div>{`${currentCameraView.lookAt.x}, ${currentCameraView.lookAt.y}, ${currentCameraView.lookAt.z}`}</div>
+                            <div>{`${cameraView.lookAt.x}, ${cameraView.lookAt.y}, ${cameraView.lookAt.z}`}</div>
                         </div>
 
                         {["x", "y", "z"].map((axis) => (
@@ -89,17 +85,19 @@ const DebugCameraControls = ({ debugMode, setDebugMode, cameraViews, currentCame
                                         min="-100"
                                         max="100"
                                         step="0.1"
-                                        value={currentCameraView.lookAt[axis as keyof Vector3] as number}
-                                        onChange={(e) =>
-                                        setCurrentCameraView((prevView) => ({
-                                            ...prevView,
-                                            lookAt: new Vector3(
-                                            axis === "x" ? parseFloat(e.target.value) : prevView.lookAt.x,
-                                            axis === "y" ? parseFloat(e.target.value) : prevView.lookAt.y,
-                                            axis === "z" ? parseFloat(e.target.value) : prevView.lookAt.z
-                                            ),
-                                        }))
-                                        }
+                                        value={cameraView.lookAt[axis as keyof Vector3] as number}
+                                        onChange={(e) => {
+                                            const newView = {
+                                                ...cameraView,
+                                                lookAt: new Vector3(
+                                                    axis === "x" ? parseFloat(e.target.value) : cameraView.lookAt.x,
+                                                    axis === "y" ? parseFloat(e.target.value) : cameraView.lookAt.y,
+                                                    axis === "z" ? parseFloat(e.target.value) : cameraView.lookAt.z
+                                                ),
+                                            }
+                                            setCameraView(newView);
+                                        }                                          
+                                    }
                                     />
                                 </label>
                             </div>
@@ -107,9 +105,8 @@ const DebugCameraControls = ({ debugMode, setDebugMode, cameraViews, currentCame
                     </div>                   
                 </div>}
             </div>  
-          </div>
-    
-  );
+        </div>            
+    );
 };
 
 export default DebugCameraControls;

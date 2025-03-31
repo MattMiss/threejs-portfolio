@@ -1,128 +1,195 @@
 import { useGLTF } from "@react-three/drei";
 import { ThreeEvent } from "@react-three/fiber";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Group, Mesh, Object3D } from "three";
-import HighlightableMesh from "./HighlightableMesh";
-import * as THREE from 'three';
+import { Group, Mesh, MeshStandardMaterial } from "three";
+import { useCameraView } from "../context/CameraContext";
+import VolumeKnob from "./VolumeKnob";
+import TooltipLine from "./TooltipLine";
+import MonitorScreen from "./MonitorScreen";
+import SpeakerSwitch from "./SpeakerSwitch";
+import { useAudio } from "../context/AudioContext";
 
 type GLTFResult = {
   scene: Group;
 };
 
-// Create a type to store mesh data with more attributes if needed
-type MeshData = {
-    mesh: Mesh;
-    name: string;
-};
-
-interface DeskSceneProps {
-    speakersOn: boolean;
-    canHover: boolean;
-    onMeshClick: (meshName: string) => void;
-    currentView: string;
-    setHighlightedMesh: ( mesh: Mesh | null) => void;
+const objectLines = {
+    speaker: { startPoint: [-27, 30, -5], endPoint: [-27, 40, -5]},
+    monitor: { startPoint: [0, 42, -13], endPoint: [0, 48, -13]},
 }
 
-const onLightMat = new THREE.MeshStandardMaterial({ color: "green", emissive: "green", emissiveIntensity: 10});
-const offLightMat = new THREE.MeshStandardMaterial({ color: "red", emissive: "red", emissiveIntensity: 10});
+const onLightMat = new MeshStandardMaterial({ color: "green", emissive: "green", emissiveIntensity: 2});
+const offLightMat = new MeshStandardMaterial({ color: "red", emissive: "red", emissiveIntensity: 2});
 
-const DeskScene = ({ speakersOn, canHover, onMeshClick, currentView, setHighlightedMesh}: DeskSceneProps) => {
-    const { scene } = useGLTF("/models/Desk.gltf") as GLTFResult;
+export default function DeskSceneNew() {
+    const { cameraViews, cameraView, setCameraView } = useCameraView();
+    const {songVolume, setSongVolume, isSongPlaying, setIsSongPlaying} = useAudio();
+    const { scene } = useGLTF("/models/DeskNew.gltf") as GLTFResult;
+    
+    // Load speakers
+    const speakerLeft = useMemo(() => scene.getObjectByName('SpeakerLeft')?.clone() as Mesh, [scene]);
+    const speakerRight = useMemo(() => scene.getObjectByName('SpeakerRight')?.clone() as Mesh, [scene]);
+    const volumeKnob = useMemo(() => speakerLeft?.getObjectByName('VolumeKnob') as Mesh, [speakerLeft]);
+    const speakerSwitch = useMemo(() => speakerLeft?.getObjectByName('SpeakerSwitch') as Mesh, [speakerLeft]);
+    const speakerText = useMemo(() => speakerLeft?.getObjectByName('SpeakerText') as Mesh, [speakerLeft]);
+    const speakerLeftLight = useMemo(() => speakerLeft?.getObjectByName('SpeakerLeft_2') as Mesh, [speakerLeft]);
+    const speakerRightLight = useMemo(() => speakerRight?.getObjectByName('SpeakerRight_2') as Mesh, [speakerRight]);
+
+    // load the rest
+    const desk = useMemo(() => scene.getObjectByName('Desk')?.clone() as Mesh, [scene]);
+    const monitor = useMemo(() => scene.getObjectByName('Monitor')?.clone() as Mesh, [scene]);
+
     const hoveredMesh = useRef<Mesh | null>(null);
-    const [speakerLight, setSpeakerLight] = useState<THREE.Mesh>(null!);
-    const [speakerLightMat, setSpeakerLightMat] = useState<THREE.MeshStandardMaterial>(speakersOn ? onLightMat : offLightMat);
+    const [isVolumeChanging, setIsVolumeChanging] = useState(false);
+    const [currentInteractable, setCurrentInteractable] = useState<Mesh | null>(null);
+    const [highlightedMesh, setHighlightedMesh] = useState<Mesh | null>(null);
 
     useEffect(() => {
-        if (!speakerLight) return;
-        //console.log(speakersOn)
-        setSpeakerLightMat(speakersOn ? onLightMat : offLightMat);
-    }, [speakersOn, speakerLight]);
+        setCameraView(cameraViews.main);
+    },[]);
 
-    const meshData = useMemo(() => {
-        const extractedMeshes: MeshData[] = [];
-        scene.traverse((child: Object3D) => {
-            if (child instanceof Mesh) {
-                if (child.name === "Speakers_2"){
-                    setSpeakerLight(child);
-                }else{
-                    extractedMeshes.push({ mesh: child, name: child.name });
+    useEffect(() => {
+        if (speakerText){
+            const speakerTextMat = speakerText.material as MeshStandardMaterial;
+            speakerTextMat.transparent = true;
+        }
+    }, [speakerText]);
+
+    useEffect(() => {
+        console.log(songVolume);
+    },[songVolume]);
+
+    useEffect(() => {
+        if (speakerLeftLight && speakerRightLight){
+            speakerLeftLight.material = isSongPlaying ? onLightMat : offLightMat;
+            speakerRightLight.material = isSongPlaying ? onLightMat : offLightMat;
+        }
+    }, [isSongPlaying]);
+
+    useEffect(() => {
+        console.log(cameraView.name)
+    }, [cameraView])
+
+    const onMeshClick = (mesh : Mesh) => {
+        console.log(mesh.name)
+        if (isVolumeChanging) return;
+        switch (mesh.name){          
+            case "Monitor":
+                if (cameraView.name === cameraViews.monitor.name) return;
+                    setCameraView(cameraViews.monitor);
+                    break;
+            case "SpeakerLeft_1":
+                if (cameraView.name === cameraViews.speaker.name) return;
+                    setCameraView(cameraViews.speaker);
+                    break;
+            case "Desk":
+                if (cameraView.name === cameraViews.main.name) return;
+                    setCameraView(cameraViews.main);
+                    break;
+            case "SpeakerSwitch":
+                if (cameraView.name === cameraViews.speaker.name){
+                    setIsSongPlaying(!isSongPlaying);
                 }
-            }
-        });
-        return extractedMeshes;
-    }, [scene]);
+                break;
+        }
+    }
 
     const OnObjectHoverOver = (e: ThreeEvent<PointerEvent>) => {
         e.stopPropagation();
+        if (isVolumeChanging) return;
+
         const mesh = e.object as Mesh;
-        if (mesh.name === currentView || mesh.name === "Speakers_2") return;
+        console.log(mesh.name);
+        if (cameraView === cameraViews.speaker){
+            if (mesh.name === "SpeakerLeft_1" || mesh.name === "SpeakerLeft_2") return;
+        }
+        if (mesh.name === cameraView.name || mesh.name === "SpeakerLeft_2") return;
         if (hoveredMesh.current !== mesh){
             setHighlightedMesh(mesh);
             hoveredMesh.current = mesh;
             document.body.style.cursor = "pointer";
         }
     };
-
+    
     const OnObjectHoverOut = (e: ThreeEvent<PointerEvent>) => {
         e.stopPropagation();
+        if (isVolumeChanging) return;
+
         const mesh = e.object as Mesh;
-        if (mesh.name === "Speakers_2") return;
+        if (mesh.name === "SpeakerLeft_2") return;
         if (hoveredMesh.current === mesh){
             setHighlightedMesh(null);
             hoveredMesh.current = null;
             document.body.style.cursor = "auto";
         }
     };
-
+    
     const OnObjectClick = (e: ThreeEvent<PointerEvent>) => {
         e.stopPropagation();
         const mesh = e.object as Mesh;
-        if (mesh.name === currentView || mesh.name === "Speakers_2") return;
-        onMeshClick(mesh.name);
+        setCurrentInteractable(mesh);
+        if (mesh.name === cameraView.name || mesh.name === "SpeakerLeft_2") return;
         setHighlightedMesh(null);
-        document.body.style.cursor = "auto";
+        onMeshClick(mesh);
+        //document.body.style.cursor = "auto";
     };
 
-    // const geometry = new THREE.BoxGeometry(1, 1, 1)
-    // const material = new THREE.MeshStandardMaterial({ color: "orange" })
-
-
     return (
-        <>           
-            {meshData.map(({ mesh, name }) => (
-                <HighlightableMesh
-                    key={mesh.uuid}
-                    geometry={mesh.geometry}
-                    material={mesh.material}
-                    position={mesh.position.clone()}
-                    rotation={mesh.rotation.clone()}
-                    scale={mesh.scale.clone()}
-                    name={name} // Not strictly needed, but you can keep it for logs
-                    onPointerOver={OnObjectHoverOver}
-                    onPointerOut={OnObjectHoverOut}
-                    onClick={OnObjectClick}
-                    hovered={canHover && hoveredMesh.current?.name === name}
-                />
-            ))}
-            {speakerLight && <mesh 
-                geometry={speakerLight.geometry}
-                material={speakerLightMat}
-            />}
-            
-            {/* Two spinning boxes side by side */}
-            {/* <HighlightableMesh
-                geometry={geometry}
-                material={material}
-                position={[-1.5, 0, 0]}
-                hovered={true}
+        <>
+            <TooltipLine 
+                show={!isVolumeChanging && highlightedMesh?.name === "SpeakerLeft_1"} 
+                startPoint={[objectLines.speaker.startPoint[0], objectLines.speaker.startPoint[1], objectLines.speaker.startPoint[2]]} 
+                endPoint={[objectLines.speaker.endPoint[0], objectLines.speaker.endPoint[1], objectLines.speaker.endPoint[2]]}
+                text='Music'
             />
-            <HighlightableMesh
-                geometry={geometry}
-                material={material}
-                position={[1.5, 0, 0]}
-            /> */}
+            <TooltipLine 
+                show={!isVolumeChanging && highlightedMesh?.name === "Monitor"} 
+                startPoint={[objectLines.monitor.startPoint[0], objectLines.monitor.startPoint[1], objectLines.monitor.startPoint[2]]} 
+                endPoint={[objectLines.monitor.endPoint[0], objectLines.monitor.endPoint[1], objectLines.monitor.endPoint[2]]}
+                text='Portfolio'
+            />
+            <primitive 
+                object={speakerLeft} 
+                onPointerOver={OnObjectHoverOver}
+                onPointerOut={OnObjectHoverOut}
+                onPointerDown={OnObjectClick}
+            />
+            {volumeKnob && 
+                <VolumeKnob 
+                    volumeKnob={volumeKnob} 
+                    canInteract={cameraView.name === cameraViews.speaker.name}
+                    onChange={setSongVolume} 
+                    isInteracting={currentInteractable === volumeKnob}
+                    setIsVolumeChanging={setIsVolumeChanging}
+                    stopInteracting={() => setCurrentInteractable(null)}
+                />
+            }
+            {speakerSwitch &&
+                <SpeakerSwitch 
+                    speakerSwitch={speakerSwitch}
+                    speakersOn={isSongPlaying}
+                />
+            }
+            <primitive 
+                object={speakerRight} 
+                onPointerOver={OnObjectHoverOver}
+                onPointerOut={OnObjectHoverOut}
+                onPointerDown={OnObjectClick}
+            />
+            <primitive 
+                object={desk} 
+                onPointerOver={OnObjectHoverOver}
+                onPointerOut={OnObjectHoverOut}
+                onPointerDown={OnObjectClick}
+            />
+            <primitive 
+                object={monitor} 
+                onPointerOver={OnObjectHoverOver}
+                onPointerOut={OnObjectHoverOut}
+                onPointerDown={OnObjectClick}
+            />
+            {/* <MonitorScreen /> */}
+            {monitor && <MonitorScreen isInFocus={cameraView.name === cameraViews.monitor.name} />}
         </>
     );
-};
-
-export default DeskScene;
+}

@@ -19,7 +19,6 @@ const MonitorScreen = ({isInFocus} : MonitorProps) => {
   return (
     <mesh ref={screenRef} position={[0, 33.85, -20]}>
       {/* Screen Shape */}
-      {/* <planeGeometry args={[3, 1.5]} /> */}
       <meshStandardMaterial>
         <Html 
           transform 

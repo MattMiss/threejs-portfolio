@@ -3,23 +3,18 @@
 /* Apply Quicksand globally */
 body {
   font-family: 'Quicksand', sans-serif;
+  background-color: rgb(157, 147, 147);
 }
 
-html, body {
-  margin: 0;
-  padding: 0;
+html, body, #root, #canvas-container {
   width: 100%;
   height: 100%;
-  overflow: hidden; /* Prevent scrolling */
-  background-color: rgb(157, 147, 147); /* Optional: Set a background color */
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  position: relative;
 }
 
-#root, #canvas-container {
-  width: 100%;
-  height: 100vh;
-}
 
 button:hover {
   cursor: pointer;
