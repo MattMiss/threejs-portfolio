@@ -8,6 +8,7 @@ import TooltipLine from "./TooltipLine";
 import MonitorScreen from "./MonitorScreen";
 import SpeakerSwitch from "./SpeakerSwitch";
 import { useAudio } from "../context/AudioContext";
+import { useInteractable } from "../context/InteractableContext";
 
 type GLTFResult = {
   scene: Group;
@@ -24,6 +25,7 @@ const offLightMat = new MeshStandardMaterial({ color: "red", emissive: "red", em
 export default function DeskSceneNew() {
     const { cameraViews, cameraView, setCameraView } = useCameraView();
     const {songVolume, setSongVolume, isSongPlaying, setIsSongPlaying} = useAudio();
+    const {currentInteractable, setCurrentInteractable, highlightedMesh, setHighlightedMesh} = useInteractable();
     const { scene } = useGLTF("/models/DeskNew.gltf") as GLTFResult;
     
     // Load speakers
@@ -41,8 +43,6 @@ export default function DeskSceneNew() {
 
     const hoveredMesh = useRef<Mesh | null>(null);
     const [isVolumeChanging, setIsVolumeChanging] = useState(false);
-    const [currentInteractable, setCurrentInteractable] = useState<Mesh | null>(null);
-    const [highlightedMesh, setHighlightedMesh] = useState<Mesh | null>(null);
 
     useEffect(() => {
         setCameraView(cameraViews.main);
